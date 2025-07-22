@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Krishi Raksha - Plant Disease Detection</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .drop-zone {
+            border: 3px dashed #9CA3AF;
+            transition: all 0.3s ease;
+        }
+        .drop-zone--over {
+            border-color: #10B981;
+            background-color: #ECFDF5;
+        }
+        
+        @media (max-width: 768px) {
+            .drop-zone {
+                padding: 2rem;
+            }
+        }
+        .result-card {
+            transition: all 0.5s ease;
+            max-height: 0;
+            overflow: hidden;
+        }
+        .result-card.show {
+            max-height: 500px;
+        }
+        .disease-card {
+            border-left: 4px solid #10B981;
+        }
+        .preview-image {
+            object-fit: contain;
+            max-height: 300px;
+        }
+    @media (max-width: 640px) {
+            .preview-image {
+                max-height: 200px;
+            }
+            #preview-container {
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="min-h-screen">
+        <!-- Header -->
+        <header class="bg-green-700 text-white shadow-lg">
+            <div class="container mx-auto px-4 py-6">
+                <div class="flex flex-col md:flex-row justify-between items-center px-2">
+                    <div class="flex items-center mb-4 md:mb-0">
+                        <div class="mr-3 bg-white p-2 rounded-full min-w-[50px]">
+                            <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/3deaa51b-9253-4bbc-baf2-12dec19c7bc3.png" alt="Krishi Raksha logo with leaf and tractor icons representing agriculture protection" />
+                        </div>
+                        <h1 class="text-2xl font-bold">Krishi Raksha</h1>
+                    </div>
+                    <nav class="flex space-xState-6 items-center">
+                        <a href="#how-it-works" class="hover:text-green-200">How It Works</a>
+                        <a href="#diseases" class="hover:text-green-200">Common Diseases</a>
+                        <button id="profile-btn" class="ml-4 bg-white p-2 rounded-full">
+                            <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/1e77d1d2-88e5-471b-ae0b-32bbfdc32e1b.png" alt="Profile" class="w-6 h-6">
+                        </button>
+                        <button id="lang-btn" class="ml-2 bg-green-600 hover:bg-green-800 px-4 py-1 rounded-full text-sm">
+                            भाषा: हिंदी
+                        </button>
+                    </nav>
+                </div>
+            </div>
+        </header>
+
+        <!-- Hero Section -->
+        <section class="py-12 bg-gradient-to-r from-green-600 to-green-800 text-white">
+            <div class="container mx-auto px-4 text-center">
+                <h1 class="text-4xl font-bold mb-4">Plant Disease Detection & Solution Finder</h1>
+                <p class="text-xl mb-8 max-w-2xl mx-auto">
+                    Upload a photo of your plant leaves and get instant diagnosis with organic treatment solutions
+                </p>
+                <div class="flex flex-col sm:flex-row justify-center gap-4">
+                    <button id="upload-btn" class="bg-white text-green-800 hover:bg-gray-100 font-semibold px-6 py-3 rounded-full shadow-lg text-sm sm:text-base">
+                        📁 Upload Image
+                    </button>
+                    <button id="camera-btn" class="bg-green-500 hover:bg-green-600 text-white font-semibold px-6 py-3 rounded-full shadow-lg flex items-center justify-center text-sm sm:text-base">
+                        <span class="mr-2">📷</span> Use Camera
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Content -->
+        <main class="container mx-auto px-4 py-12">
+            <!-- Image Upload Area -->
+            <div class="max-w-3xl mx-auto mb-16">
+                <input type="file" id="file-input" accept="image/*" class="hidden" capture="environment" />
+                <input type="file" id="camera-input" accept="image/*" class="hidden" capture="camera" />
+                <div id="drop-zone" class="drop-zone rounded-xl p-8 text-center cursor-pointer">
+                    <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/a535a264-757f-4b3b-a5cf-1698177592c1.png" alt="Leaf image upload illustration with plant and upload icons" class="mx-auto mb-4 w-48 h-48 object-contain" />
+                    <h3 class="text-xl font-semibold mb-2">Upload Leaf Photo</h3>
+                    <p class="text-gray-600 mb-4">Drag & drop your image here, or click to browse files</p>
+                    <p class="text-sm text-gray-500">Supported formats: JPG, PNG (Max 5MB)</p>
+                </div>
+            </div>
+
+            <!-- Preview and Results Section -->
+            <div class="max-w-3xl mx-auto">
+                <!-- Image Preview -->
+                <div id="image-preview" class="hidden mb-8 bg-white p-6 rounded-xl shadow-md">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-semibold">Selected Leaf Images</h3>
+                        <button id="add-more-btn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-full text-sm">
+                            + Add More Images
+                        </button>
+                    </div>
+                    <div class="flex flex-wrap gap-4 mb-4" id="preview-container">
+                        <div class="relative">
+                            <img id="preview" src="" alt="Preview of uploaded plant leaf for disease detection" class="preview-image w-48 h-48 object-cover rounded-lg border border-gray-200" src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/c8a71053-301a-4feb-9d20-8737362eeeab.png">
+                            <button class="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center" onclick="this.parentNode.remove()">
+                                ×
+                            </button>
+                        </div>
+                        <div class="md:w-1/2 flex flex-col">
+                            <div class="text-gray-700">
+                                <p class="font-medium mb-2">Diagnosing your plant...</p>
+                                <div id="loading-bar" class="h-2 bg-gray-200 rounded-full overflow-hidden hidden">
+                                    <div class="h-full bg-green-500 animate-pulse" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Results -->
+                <div id="result-container" class="result-card bg-white p-6 rounded-xl shadow-md">
+                    <h3 class="text-xl font-semibold mb-4">Diagnosis Results</h3>
+                    
+                    <!-- Healthy Plant -->
+                    <div id="healthy-result" class="hidden mb-6 disease-card p-6 rounded-lg bg-green-50">
+                        <div class="flex items-start">
+                            <div class="mr-4 text-green-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 class="text-lg font-semibold mb-1">Healthy Plant</h4>
+                                <p class="text-gray-700">Our analysis shows your plant appears healthy with no signs of disease.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Disease Results -->
+                    <div id="disease-results-container"></div>
+
+                    <!-- Recommended Solutions -->
+                    <div id="solutions-container" class="mt-8 hidden">
+                        <h4 class="text-lg font-semibold mb-4">Recommended Solutions</h4>
+                        <div id="solutions-content" class="space-y-4"></div>
+                    </div>
+
+                    <!-- Prevention Tips -->
+                    <div id="prevention-tips" class="mt-8 hidden">
+                        <h4 class="text-lg font-semibold mb-4">Prevention Tips</h4>
+                        <div id="prevention-content" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Filled by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- How It Works -->
+            <section id="how-it-works" class="max-w-6xl mx-auto mt-20">
+                <h2 class="text-2xl font-bold text-center mb-8">How It Works</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="bg-white p-6 rounded-xl shadow-md">
+                        <div class="text-green-600 mb-4 text-4xl">1</div>
+                        <h3 class="text-xl font-semibold mb-2">Upload Photo</h3>
+                        <p class="text-gray-600">Take clear photos of affected leaves from multiple angles in good lighting.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-md">
+                        <div class="text-green-600 mb-4 text-4xl">2</div>
+                        <h3 class="text-xl font-semibold mb-2">AI Diagnosis</h3>
+                        <p class="text-gray-600">Our system analyzes visual patterns to detect diseases and nutrient deficiencies.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-md">
+                        <div class="text-green-600 mb-4 text-4xl">3</div>
+                        <h3 class="text-xl font-semibold mb-2">Get Solutions</h3>
+                        <p class="text-gray-600">Receive tailored organic and chemical treatment options with application details.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Recent Scans Section -->
+            <section id="recent-scans" class="max-w-6xl mx-auto mt-16">
+                <h2 class="text-2xl font-bold text-center mb-6">Recent Scans</h2>
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="recent-scans-container">
+                        <!-- Will be populated by JS -->
+                    </div>
+                    <button id="view-all-btn" class="mt-4 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-md w-full">
+                        View All Scans
+                    </button>
+                </div>
+            </section>
+
+            <!-- Common Diseases -->
+            <section id="diseases" class="max-w-6xl mx-auto mt-16">
+                <h2 class="text-2xl font-bold text-center mb-8">Common Plant Diseases</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Disease Examples -->
+                    <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                        <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/6f004059-7809-4599-bbf0-b18000c13327.png" alt="Tomato leaves with late blight disease showing brown lesions" class="w-full h-48 object-cover" />
+                        <div class="p-6">
+                            <h3 class="font-semibold text-lg mb-2">Late Blight (Tomatoes)</h3>
+                            <p class="text-gray-600 mb-3">Dark brown spots with white fungal growth that spreads rapidly in humid conditions.</p>
+                            <span class="inline-block bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">Fungal</span>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                        <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/ef90094f-f0d4-4b40-a0d7-d45bd70bd53c.png" alt="Cucumber leaves with powdery mildew white spots" class="w-full h-48 object-cover" />
+                        <div class="p-6">
+                            <h3 class="font-semibold text-lg mb-2">Powdery Mildew</h3>
+                            <p class="text-gray-600 mb-3">White powdery growth on leaves that causes yellowing and reduced yield.</p>
+                            <span class="inline-block bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full">Fungal</span>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                        <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/659d2bfb-a135-460c-955c-f8d8fdd0e22f.png" alt="Plant leaves with bacterial spot disease showing yellow halos" class="w-full h-48 object-cover" />
+                        <div class="p-6">
+                            <h3 class="font-semibold text-lg mb-2">Bacterial Leaf Spot</h3>
+                            <p class="text-gray-600 mb-3">Small brown spots with yellow halos that can cause severe defoliation.</p>
+                            <span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">Bacterial</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Profile Section -->
+        <div id="profile-section" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+            <div class="bg-white rounded-xl p-8 max-w-md w-full mx-4">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold">User Profile</h2>
+                    <button id="close-profile" class="text-gray-500 hover:text-gray-700">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="text-center mb-6">
+                    <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/4b831d2e-2e9b-4beb-81d4-941aa713d2d6.png" alt="Profile" class="w-24 h-24 rounded-full mx-auto mb-4">
+                    <h3 class="text-xl font-semibold" id="profile-name">Guest User</h3>
+                    <p class="text-gray-600" id="profile-email">guest@example.com</p>
+                </div>
+                <div class="space-y-4">
+                    <button class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg">
+                        Edit Profile
+                    </button>
+                    <button class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 py-2 rounded-lg">
+                        Scan History
+                    </button>
+                    <button class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 py-2 rounded-lg">
+                        Settings
+                    </button>
+                    <button class="w-full bg-red-100 hover:bg-red-200 text-red-600 py-2 rounded-lg">
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="bg-gray-800 text-white py-12">
+            <div class="container mx-auto px-4">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                    <div>
+                        <h3 class="text-lg font-semibold mb-4">Krishi Raksha</h3>
+                        <p class="text-gray-400">Empowering farmers with AI-powered plant disease detection and organic treatment solutions.</p>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold mb-4">Quick Links</h3>
+                        <ul class="space-y-2">
+                            <li><a href="#" class="text-gray-400 hover:text-white">Home</a></li>
+                            <li><a href="#how-it-works" class="text-gray-400 hover:text-white">How It Works</a></li>
+                            <li><a href="#diseases" class="text-gray-400 hover:text-white">Disease Library</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold mb-4">Resources</h3>
+                        <ul class="space-y-2">
+                            <li><a href="#" class="text-gray-400 hover:text-white">Organic Treatments</a></li>
+                            <li><a href="#" class="text-gray-400 hover:text-white">Prevention Guide</a></li>
+                            <li><a href="#" class="text-gray-400 hover:text-white">Farmer Support</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold mb-4">Contact</h3>
+                        <ul class="space-y-2">
+                            <li class="text-gray-400">help@krishiraksha.app</li>
+                            <li class="text-gray-400">+91 98765 43210</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
+                    <p>&copy; 2023 Krishi Raksha. All rights reserved.</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // DOM Elements
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const preview = document.getElementById('preview');
+        const imagePreview = document.getElementById('image-preview');
+        const resultContainer = document.getElementById('result-container');
+        const loadingBar = document.getElementById('loading-bar');
+        
+        // Disease database (simplified for demo)
+        const diseases = {
+            'tomato_late_blight': {
+                name: 'Tomato Late Blight',
+                type: 'Fungal',
+                confidence: '90%',
+                symptoms: [
+                    'Dark green to brown irregular lesions with fuzzy white fungal growth',
+                    'Spots appear water-soaked in humid conditions',
+                    'Leaves eventually turn yellow, then brown and dry'
+                ],
+                solutions: [
+                    'Remove and destroy infected plants immediately',
+                    'Apply copper-based fungicide (3-4g per liter water) every 7-10 days',
+                    'Improve air circulation by proper spacing',
+                    'Water plants at the base, avoid wetting foliage'
+                ],
+                prevention: [
+                    'Plant resistant varieties when available',
+                    'Rotate crops annually (3-4 year rotation)',
+                    'Avoid working with plants when wet',
+                    'Sterilize tools after contact with infected plants'
+                ]
+            },
+            'powdery_mildew': {
+                name: 'Powdery Mildew',
+                type: 'Fungal',
+                confidence: '85%',
+                symptoms: [
+                    'White powdery spots that spread to cover entire leaves',
+                    'Leaves become yellow and distorted',
+                    'Severe infections cause premature leaf drop'
+                ],
+                solutions: [
+                    'Spray milk solution (1 part milk to 9 parts water) every 5-7 days',
+                    'Apply baking soda spray (1 tablespoon baking soda + 1/2 teaspoon liquid soap + 1 gallon water)',
+                    'Use sulfur-based organic fungicides',
+                    'Prune heavily infected leaves to improve air circulation'
+                ],
+                prevention: [
+                    'Plant in full sun locations',
+                    'Ensure proper spacing between plants',
+                    'Avoid excess nitrogen fertilizer',
+                    'Water early in the day so leaves dry quickly'
+                ]
+            },
+            // Add more diseases as needed...
+        };
+
+        // Event Listeners
+        dropZone.addEventListener('click', () => fileInput.click());
+        
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                handleFileUpload(file);
+            }
+        });
+
+        // Add camera button click handler
+        document.getElementById('camera-btn').addEventListener('click', () => {
+            document.getElementById('camera-input').click();
+        });
+
+        document.getElementById('camera-input').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                handleFileUpload(file);
+            }
+        });
+
+        // Drag and drop functionality
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight() {
+            dropZone.classList.add('drop-zone--over');
+        }
+
+        function unhighlight() {
+            dropZone.classList.remove('drop-zone--over');
+        }
+
+        dropZone.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            const file = dt.files[0];
+            if (file && file.type.match('image.*')) {
+                handleFileUpload(file);
+            }
+        });
+
+        // Touch support for drag and drop (simulated)
+        dropZone.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('drop-zone--over');
+        }, false);
+
+        dropZone.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drop-zone--over');
+            if (currentFiles.length === 0) {
+                fileInput.click();
+            } else {
+                document.getElementById('add-more-btn').click();
+            }
+        }, false);
+
+        let currentFiles = [];
+        
+        function handleFileUpload(file) {
+            // Check if file is an image
+            if (!file.type.match('image.*')) {
+                alert('Please upload an image file (JPEG, PNG)');
+                return;
+            }
+
+            // Check file size (5MB max)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('File size too large (max 5MB)');
+                return;
+            }
+
+            currentFiles.push(file);
+            
+            // Show preview
+            const previewContainer = document.getElementById('preview-container');
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const previewItem = document.createElement('div');
+                previewItem.className = 'relative';
+                previewItem.innerHTML = `
+                    <img src="${e.target.result}" alt="Preview of uploaded plant leaf" class="preview-image w-48 h-48 object-cover rounded-lg border border-gray-200">
+                    <button class="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center" onclick="this.parentNode.remove()">
+                        ×
+                    </button>
+                `;
+                previewContainer.appendChild(previewItem);
+                imagePreview.classList.remove('hidden');
+                
+                // Only show loading bar for first image
+                if (currentFiles.length === 1) {
+                    loadingBar.classList.remove('hidden');
+                    simulateAnalysis();
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        document.getElementById('add-more-btn').addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        function simulateAnalysis() {
+            // Start loading animation
+            let width = 0;
+            const interval = setInterval(() => {
+                if (width >= 100) {
+                    clearInterval(interval);
+                    showResults();
+                } else {
+                    width += 5;
+                    loadingBar.querySelector('div').style.width = `${width}%`;
+                }
+            }, 100);
+        }
+
+        function showResults() {
+            loadingBar.classList.add('hidden');
+            resultContainer.classList.add('show');
+            
+            // Clear previous results
+            document.getElementById('disease-results-container').innerHTML = '';
+            document.getElementById('solutions-content').innerHTML = '';
+            document.getElementById('prevention-content').innerHTML = '';
+            
+            // Hide healthy result initially
+            document.getElementById('healthy-result').classList.add('hidden');
+            // Hide solutions and prevention initially
+            document.getElementById('solutions-container').classList.add('hidden');
+            document.getElementById('prevention-tips').classList.add('hidden');
+            
+            // For demo purposes, randomly pick a disease or show healthy result
+            setTimeout(() => {
+                const randomNum = Math.random();
+                if (randomNum > 0.3) { // 70% chance of disease for demo
+                    diagnoseDisease();
+                } else {
+                    showHealthyResult();
+                }
+            }, 500);
+        }
+
+        function diagnoseDisease() {
+            // In a real app, this would call an API with the image for analysis
+            // For demo, we'll pick a random disease from our database
+            
+            const diseaseKeys = Object.keys(diseases);
+            const randomDiseaseKey = diseaseKeys[Math.floor(Math.random() * diseaseKeys.length)];
+            const disease = diseases[randomDiseaseKey];
+            
+            const diseaseResultsContainer = document.getElementById('disease-results-container');
+            
+            // Create disease result card
+            const diseaseCard = document.createElement('div');
+            diseaseCard.className = 'mb-6 disease-card p-6 rounded-lg bg-yellow-50';
+            diseaseCard.innerHTML = `
+                <div class="flex items-start">
+                    <div class="mr-4 text-yellow-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-start">
+                            <h4 class="text-lg font-semibold mb-1">${disease.name} (${disease.type})</h4>
+                            <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">${disease.confidence} match</span>
+                        </div>
+                        <p class="text-gray-700 mb-2">Symptoms detected:</p>
+                        <ul class="list-disc pl-5 mb-2 text-gray-700">
+                            ${disease.symptoms.map(symptom => `<li>${symptom}</li>`).join('')}
+                        </ul>
+                    </div>
+                </div>
+            `;
+            
+            diseaseResultsContainer.appendChild(diseaseCard);
+            
+            // Show solutions
+            const solutionsContainer = document.getElementById('solutions-container');
+            const solutionsContent = document.getElementById('solutions-content');
+            
+            disease.solutions.forEach((solution, index) => {
+                const solutionItem = document.createElement('div');
+                solutionItem.className = 'flex items-start';
+                solutionItem.innerHTML = `
+                    <span class="flex-shrink-0 mt-1 mr-3 text-green-600">${index + 1}.</span>
+                    <p class="text-gray-700">${solution}</p>
+                `;
+                solutionsContent.appendChild(solutionItem);
+            });
+            
+            solutionsContainer.classList.remove('hidden');
+            
+            // Show prevention tips
+            const preventionTips = document.getElementById('prevention-tips');
+            const preventionContent = document.getElementById('prevention-content');
+            
+            disease.prevention.forEach(tip => {
+                const tipItem = document.createElement('div');
+                tipItem.className = 'bg-gray-50 p-4 rounded-lg';
+                tipItem.innerHTML = `
+                    <div class="flex items-start">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600 mt-0.5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <p class="text-gray-700">${tip}</p>
+                    </div>
+                `;
+                preventionContent.appendChild(tipItem);
+            });
+            
+            preventionTips.classList.remove('hidden');
+        }
+
+        function showHealthyResult() {
+            document.getElementById('healthy-result').classList.remove('hidden');
+            
+            // Show general care tips for healthy plants
+            const preventionTips = document.getElementById('prevention-tips');
+            const preventionContent = document.getElementById('prevention-content');
+            
+            const generalTips = [
+                'Continue monitoring plants weekly for early signs of disease',
+                'Maintain proper spacing between plants for good air circulation',
+                'Water at the base of plants to keep foliage dry',
+                'Apply balanced organic fertilizer as needed',
+                'Remove weeds that can harbor pests and diseases'
+            ];
+            
+            generalTips.forEach(tip => {
+                const tipItem = document.createElement('div');
+                tipItem.className = 'bg-gray-50 p-4 rounded-lg';
+                tipItem.innerHTML = `
+                    <div class="flex items-start">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600 mt-0.5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <p class="text-gray-700">${tip}</p>
+                    </div>
+                `;
+                preventionContent.appendChild(tipItem);
+            });
+            
+            preventionTips.classList.remove('hidden');
+        }
+
+        // Recent scans functionality
+        const recentScans = JSON.parse(localStorage.getItem('recentScans') || '[]');
+        const recentScansContainer = document.getElementById('recent-scans-container');
+
+        function updateRecentScans(scanData) {
+            recentScans.unshift(scanData);
+            if (recentScans.length > 6) {
+                recentScans.pop();
+            }
+            localStorage.setItem('recentScans', JSON.stringify(recentScans));
+            renderRecentScans();
+        }
+
+        function renderRecentScans() {
+            recentScansContainer.innerHTML = recentScans.map(scan => `
+                <div class="bg-gray-50 rounded-lg p-2 cursor-pointer">
+                    <img src="${scan.image}" alt="Recent scan" class="w-full h-24 object-cover rounded-md">
+                    <p class="text-sm text-center mt-1 truncate">${scan.date}</p>
+                </div>
+            `).join('');
+        }
+
+        // Initialize recent scans
+        renderRecentScans();
+
+        // Profile functionality
+        document.getElementById('profile-btn').addEventListener('click', function() {
+            document.getElementById('profile-section').classList.remove('hidden');
+        });
+
+        document.getElementById('close-profile').addEventListener('click', function() {
+            document.getElementById('profile-section').classList.add('hidden');
+        });
+
+        // Language switcher functionality (simplified)
+        document.getElementById('lang-btn').addEventListener('click', function() {
+            const currentText = this.textContent.trim();
+            if (currentText.includes('हिंदी')) {
+                this.textContent = 'Language: English';
+                // In a real app, we would update all text elements to Hindi
+            } else {
+                this.textContent = 'भाषा: हिंदी';
+                // In a real app, we would update all text elements to English
+            }
+        });
+    </script>
+</body>
+</html>
