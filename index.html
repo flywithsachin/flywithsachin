@@ -6,314 +6,519 @@
     <title>Artificial Gravitation Presentation</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;700&family=Orbitron:wght@400;700&display=swap');
         
-        @keyframes slideInRight {
-            from { opacity: 0; transform: translateX(100px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-        
-        @keyframes scaleIn {
-            from { opacity: 0; transform: scale(0.8); }
-            to { opacity: 1; transform: scale(1); }
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #0f172a;
+            color: white;
+            overflow: hidden;
+            perspective: 1000px;
         }
         
         .slide {
+            position: absolute;
             width: 100vw;
             height: 100vh;
-            display: none;
-            flex-direction: column;
-            justify-content: center;
-            padding: 2rem;
-            position: relative;
-            overflow: hidden;
+            padding: 4rem;
+            box-sizing: border-box;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border-radius: 2rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            transform-style: preserve-3d;
+            transition: all 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 0;
+            z-index: 0;
         }
         
-        .active {
-            display: flex;
+        .slide.active {
+            opacity: 1;
+            z-index: 10;
+            transform: translateX(0) rotateY(0deg);
         }
         
-        .title {
+        .slide.next {
+            transform: translateX(80%) rotateY(-20deg);
+        }
+        
+        .slide.prev {
+            transform: translateX(-80%) rotateY(20deg);
+        }
+        
+        .slide-title {
+            font-family: 'Orbitron', sans-serif;
             font-size: 3rem;
-            font-weight: bold;
-            margin-bottom: 1rem;
-            color: white;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-            animation: fadeIn 1s ease-out;
-        }
-        
-        .subtitle {
-            font-size: 1.5rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            background: linear-gradient(to right, #38bdf8, #818cf8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
             margin-bottom: 2rem;
-            color: #e2e8f0;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-            animation: fadeIn 1.5s ease-out;
+            text-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
         }
         
-        .content {
-            max-width: 800px;
-            animation: slideInRight 1.5s ease-out;
-            background-color: rgba(0, 0, 0, 0.7);
-            padding: 1.5rem;
-            border-radius: 0.5rem;
-            color: white;
-        }
-        
-        .content p {
-            margin-bottom: 1rem;
-        }
-        
-        .slide-bg {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            z-index: -1;
-            filter: brightness(0.7);
-        }
-        
-        .diagram {
-            max-width: 400px;
-            margin: 1rem 0;
-            animation: scaleIn 1s ease-out;
-            border: 2px solid white;
-            border-radius: 0.5rem;
+        .slide-content {
+            font-size: 1.5rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+            max-width: 70%;
         }
         
         .presenter-info {
-            background-color: rgba(26, 32, 44, 0.8);
-            padding: 1rem;
-            border-radius: 0.5rem;
-            margin-top: 1rem;
-        }
-        
-        .nav-buttons {
-            position: fixed;
+            position: absolute;
             bottom: 2rem;
-            right: 2rem;
+            right: 3rem;
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+        
+        .diagram {
+            position: absolute;
+            right: 4rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 400px;
+            height: 400px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+            padding: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
             display: flex;
-            gap: 1rem;
-            z-index: 100;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
         }
         
-        .btn {
-            padding: 0.5rem 1rem;
-            background-color: #3182ce;
-            color: white;
-            border: none;
-            border-radius: 0.25rem;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-        
-        .btn:hover {
-            background-color: #2c5282;
+        .progress-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 8px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.2);
+            overflow: hidden;
         }
         
         .progress {
-            position: fixed;
-            bottom: 2rem;
-            left: 2rem;
-            color: white;
-            background-color: rgba(0,0,0,0.5);
-            padding: 0.5rem 1rem;
-            border-radius: 0.25rem;
-            z-index: 100;
+            height: 100%;
+            background: linear-gradient(to right, #38bdf8, #818cf8);
+            animation: progressBar 30s linear forwards;
         }
         
-        @media print {
-            body { -webkit-print-color-adjust: exact; }
-            .slide {
-                height: auto;
-                min-height: 100vh;
-                display: flex !important;
-                page-break-after: always;
+        @keyframes progressBar {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
+
+        .grav-diagram {
+            animation: glowPulse 3s infinite alternate;
+        }
+
+        @keyframes glowPulse {
+            from {
+                box-shadow: 0 0 10px #38bdf8;
             }
-            .nav-buttons, .progress {
-                display: none;
+            to {
+                box-shadow: 0 0 30px #818cf8;
             }
-            .slide-bg {
-                filter: brightness(0.5);
-            }
+        }
+        
+        .control-buttons {
+            position: fixed;
+            bottom: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .control-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(56, 189, 248, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
+        }
+        
+        .floating {
+            animation: floating 6s ease-in-out infinite;
+        }
+        
+        @keyframes floating {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        .rotate {
+            animation: rotate 20s linear infinite;
+        }
+        
+        .rotate-slow {
+            animation: rotate 40s linear infinite;
+        }
+        
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
-<body class="font-sans">
+<body>
+    <!-- Slide 1: Title Slide -->
     <div class="slide active" id="slide1">
-        <img src="https://images.unsplash.com/photo-1454789548928-9efd52dc4031?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1920&q=80" alt="Rotating space station creating artificial gravity" class="slide-bg">
-        <h1 class="title">Artificial Gravitation</h1>
-        <h2 class="subtitle">The Future of Space Exploration</h2>
-        <div class="content">
-            <p>Presented by: <strong>Samarth Shukla</strong></p>
-            <p>Class: <strong>12th</strong></p>
-            <p>School: <strong>SVM Rambagh, Basti</strong></p>
-            <p>In this presentation, I will explore the fascinating concept of Artificial Gravitation. It refers to the simulation of gravity in space or other low-gravity environments using scientific techniques. This topic is crucial for future space missions and human survival beyond Earth.</p>
+        <div class="progress-bar"><div class="progress"></div></div>
+        <h1 class="slide-title">Artificial Gravitation</h1>
+        <div class="slide-content">
+            <p>A comprehensive presentation exploring the science and technology behind creating artificial gravity in space environments.</p>
+        </div>
+        <div class="diagram floating">
+            <svg class="grav-diagram" width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="200" cy="200" r="150" fill="none" stroke="#818cf8" stroke-width="3" stroke-dasharray="5,5"/>
+                <circle cx="200" cy="200" r="180" fill="none" stroke="#38bdf8" stroke-width="2">
+                    <animateTransform attributeName="transform" type="rotate" from="0 200 200" to="360 200 200" dur="30s" repeatCount="indefinite"/>
+                </circle>
+                <text x="200" y="100" fill="#38bdf8" font-size="24" text-anchor="middle">Artificial Gravity</text>
+                <text x="200" y="130" fill="#818cf8" font-size="16" text-anchor="middle">Rotating Space Station</text>
+            </svg>
+        </div>
+        <div class="presenter-info">
+            <p><strong>Presented by:</strong> Samarth Shukla</p>
+            <p><strong>Class:</strong> 12th</p>
+            <p><strong>School:</strong> SVM Rambagh</p>
         </div>
     </div>
     
+    <!-- Slide 2: Introduction -->
     <div class="slide" id="slide2">
-        <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/e5ba515b-c1e6-4d7b-88d3-8463b5bf7bd4.png" alt="Astronaut floating in space station conducting experiments with various scientific instruments" class="slide-bg">
-        <h1 class="title">Introduction & Meaning</h1>
-        <h2 class="subtitle">Understanding Artificial Gravity</h2>
-        <div class="content">
-            <p>Artificial gravitation is the creation of gravitational effects through artificial means. In space, the absence of gravity causes serious health and structural issues for astronauts and spacecraft.</p>
-            <p>To address this, scientists have developed various methods to simulate gravity. It can be generated using centrifugal force by rotating a spacecraft or habitat. Artificial gravity helps maintain human physiology and operational efficiency during long-term space travel.</p>
-            <img src="https://www.researchgate.net/publication/334645698/figure/fig1/AS:783989967052801@1564022966594/The-principle-of-artificial-gravity-generation-by-centrifugal-force.png" alt="Diagram showing centrifugal force principle for artificial gravity" class="diagram">
+        <div class="progress-bar"><div class="progress"></div></div>
+        <h1 class="slide-title">Introduction</h1>
+        <div class="slide-content">
+            <p>Artificial gravity is the creation of an inertial force that mimics the effects of gravity, typically in space environments where gravity is weak or absent.</p>
+            <p>This technology is crucial for long-duration space missions to counteract the negative health effects of prolonged weightlessness.</p>
+        </div>
+        <div class="diagram">
+            <svg class="grav-diagram" width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+                <!-- Earth Gravity Side -->
+                <circle cx="100" cy="200" r="80" fill="#1e40af" stroke="#38bdf8" stroke-width="3"/>
+                <!-- Zero Gravity Side -->
+                <circle cx="300" cy="200" r="80" fill="#0f172a" stroke="#818cf8" stroke-width="3"/>
+                <!-- Astronaut on Earth -->
+                <g transform="translate(70 150)" class="floating">
+                    <circle cx="10" cy="10" r="5" fill="#fff"/>
+                    <path d="M10 15 L10 25 M5 20 L15 20" stroke="#fff" stroke-width="2"/>
+                </g>
+                <!-- Astronaut in Space -->
+                <g transform="translate(270 150)" class="rotate">
+                    <circle cx="10" cy="10" r="5" fill="#818cf8"/>
+                    <path d="M10 15 L10 25 M5 18 L15 18 M5 22 L15 22" stroke="#818cf8" stroke-width="2"/>
+                </g>
+                <!-- Labels -->
+                <text x="100" y="300" fill="#38bdf8" text-anchor="middle">Earth Gravity (1g)</text>
+                <text x="300" y="300" fill="#818cf8" text-anchor="middle">Zero Gravity</text>
+            </svg>
         </div>
     </div>
     
+    <!-- Slide 3: Meaning of Artificial Gravitation -->
     <div class="slide" id="slide3">
-        <img src="https://i.pinimg.com/originals/1b/4c/6c/1b4c6c120800b569bfb8f1e079d3c256.jpg" alt="Space habitat rotating to create artificial gravity" class="slide-bg">
-        <h1 class="title">Creating Artificial Gravitation</h1>
-        <h2 class="subtitle">Techniques and Methods</h2>
-        <div class="content">
-            <p>There are several techniques for creating artificial gravity:</p>
-            <ul class="list-disc pl-5">
-                <li>Rotational motion (centrifugal force)</li>
-                <li>Linear acceleration</li>
-                <li>Magnetic fields (experimental)</li>
-                <li>Inertial forces (theoretical)</li>
-            </ul>
-            <p>The most common method is using rotational motion, where a space station or part of it is spun to generate centrifugal force. These technologies aim to replicate Earth-like conditions in space for safer and more sustainable missions.</p>
-            <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/92ff0983-0a92-45f2-9802-d27cf9de2419.png" alt="Comparative diagram of different artificial gravity generation techniques" class="diagram">
+        <div class="progress-bar"><div class="progress"></div></div>
+        <h1 class="slide-title">Meaning of Artificial Gravitation</h1>
+        <div class="slide-content">
+            <p>Artificial gravitation refers to various theoretical designs to produce acceleration that would feel like gravity.</p>
+            <p>It's not "real" gravity caused by mass, but rather acceleration that produces equivalent effects on objects and organisms.</p>
+        </div>
+        <div class="diagram rotate">
+            <svg class="grav-diagram" width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+                <rect x="50" y="50" width="100" height="300" rx="10" fill="#1e293b" stroke="#38bdf8"/>
+                <circle cx="100" cy="100" r="30" fill="none" stroke="#818cf8" stroke-width="2">
+                    <animateTransform attributeName="transform" type="rotate" from="0 100 100" to="360 100 100" dur="10s" repeatCount="indefinite"/>
+                </circle>
+                <text x="40" y="170" fill="#fff">Rotation</text>
+                
+                <rect x="150" y="50" width="100" height="300" rx="10" fill="#1e293b" stroke="#38bdf8"/>
+                <rect x="170" y="100" width="60" height="60" fill="#818cf8" rx="5">
+                    <animate attributeName="y" values="100;240;100" dur="8s" repeatCount="indefinite"/>
+                </rect>
+                <text x="150" y="170" fill="#fff">Linear</text>
+                <text x="150" y="190" fill="#fff">Acceleration</text>
+                
+                <rect x="250" y="50" width="100" height="300" rx="10" fill="#1e293b" stroke="#38bdf8"/>
+                <path d="M270 100 L330 100 L300 160 Z" fill="#818cf8">
+                    <animateTransform attributeName="transform" type="rotate" from="0 300 130" to="360 300 130" dur="15s" repeatCount="indefinite"/>
+                </path>
+                <text x="260" y="200" fill="#fff">Electro-</text>
+                <text x="260" y="220" fill="#fff">magnetic</text>
+            </svg>
         </div>
     </div>
     
+    <!-- Slide 4: Creating Artificial Gravitation -->
     <div class="slide" id="slide4">
-        <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/310c5ed7-5612-4176-b2e1-aab56e1953a9.png" alt="Blueprints and computer simulations of rotating space station designs" class="slide-bg">
-        <h1 class="title">Considerations</h1>
-        <h2 class="subtitle">Design Challenges</h2>
-        <div class="content">
-            <p>While designing artificial gravity systems, engineers must consider:</p>
-            <ul class="list-disc pl-5">
-                <li>Size and rotation speed (RPM)</li>
-                <li>Human comfort and motion sickness</li>
-                <li>Structural material strength</li>
-                <li>Energy efficiency</li>
-                <li>Safety factors</li>
-                <li>Cost-effectiveness</li>
-            </ul>
-            <p>Too fast a rotation can cause dizziness and discomfort due to Coriolis effects. Structural materials must be strong yet lightweight to endure the stresses of rotation.</p>
-            <img src="https://www.nasa.gov/wp-content/uploads/2021/08/artificial-gravity-chart.jpg" alt="NASA chart showing optimal rotation parameters for artificial gravity" class="diagram">
+        <div class="progress-bar"><div class="progress"></div></div>
+        <h1 class="slide-title">Creating Artificial Gravitation</h1>
+        <div class="slide-content">
+            <p>The most practical method involves using centrifugal force through rotation of a spacecraft or space station.</p>
+            <p>At sufficient rotation speed, this creates an outward force that can simulate gravity's effects.</p>
+        </div>
+        <div class="diagram">
+            <svg class="grav-diagram" width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="200" cy="200" r="180" fill="none" stroke="#38bdf8" stroke-width="2"/>
+                <circle cx="200" cy="80" r="30" fill="#818cf8"/>
+                <path d="M200 200 L200 80" stroke="#fff" stroke-width="2" stroke-dasharray="5,5"/>
+                <text x="220" y="90" fill="#fff" font-size="14">R</text>
+                <text x="100" y="230" fill="#fff" font-size="16">v = √(g·R)</text>
+                <text x="130" y="260" fill="#fff" font-size="16">ω = v/R</text>
+                <text x="150" y="50" fill="#38bdf8" font-size="18" font-weight="bold">Centrifugal Force</text>
+                <path d="M200 80 Q220 60 240 80" stroke="#fff" fill="none" stroke-width="2"/>
+            </svg>
         </div>
     </div>
     
+    <!-- Slide 5: Considerations -->
     <div class="slide" id="slide5">
-        <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/7777ba99-b2a7-4ffe-b4e9-074482b5007a.png" alt="Astronauts exercising in rotating space station gym with futuristic equipment" class="slide-bg">
-        <h1 class="title">Applications</h1>
-        <h2 class="subtitle">Practical Uses</h2>
-        <div class="content">
-            <p>Artificial gravity has many potential applications:</p>
-            <ul class="list-disc pl-5">
-                <li>Maintaining astronaut bone density/muscle</li>
-                <li>Reducing health risks of microgravity</li>
-                <li>Conducting Earth-like experiments</li>
-                <li>Future space tourism and hotels</li>
-                <li>Long-duration space missions</li>
-            </ul>
-            <p>It reduces the risk of long-term exposure to microgravity. Future space hotels and habitats will likely use artificial gravity to improve comfort and livability.</p>
-            <img src="https://media.npr.org/assets/img/2022/11/18/rotating-space-station_custom-b38b5166af3e645f043d5b6cd4ef898a81b8d8b9.jpg" alt="Concept art of rotating space habitat interior" class="diagram">
+        <div class="progress-bar"><div class="progress"></div></div>
+        <h1 class="slide-title">Considerations</h1>
+        <div class="slide-content">
+            <p>Key factors include rotation rate (RPM), radius of rotation, and resulting Coriolis effects.</p>
+            <p>Too rapid rotation can cause motion sickness, while too slow requires impractically large structures.</p>
+        </div>
+        <div class="diagram pulse">
+            <svg class="grav-diagram" width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+                <!-- Graph Axes -->
+                <path d="M50 50 L50 350 L350 350" stroke="#fff" stroke-width="2" fill="none"/>
+                <path d="M50 350 L350 350 L340 345 M350 350 L340 355" stroke="#fff" stroke-width="2"/>
+                <path d="M50 350 L50 50 L45 60 M50 50 L55 60" stroke="#fff" stroke-width="2"/>
+                
+                <!-- Comfort Zone -->
+                <rect x="120" y="150" width="150" height="100" fill="#38bdf8" fill-opacity="0.2" rx="5"/>
+                <text x="150" y="290" fill="#38bdf8">Human Comfort Zone</text>
+                
+                <!-- Data Points -->
+                <circle cx="100" cy="320" r="5" fill="#f87171"/>
+                <circle cx="150" cy="250" r="5" fill="#4ade80"/>
+                <circle cx="200" cy="200" r="5" fill="#4ade80"/>
+                <circle cx="250" cy="250" r="5" fill="#4ade80"/>
+                <circle cx="300" cy="320" r="5" fill="#f87171"/>
+                
+                <!-- Labels -->
+                <text x="30" y="25" fill="#fff">Discomfort</text>
+                <text x="370" y="365" fill="#fff">RPM</text>
+                <text x="100" y="375" fill="#f87171">Too Slow</text>
+                <text x="300" y="375" fill="#f87171">Too Fast</text>
+                <text x="180" y="210" fill="#4ade80">Optimal</text>
+            </svg>
         </div>
     </div>
     
+    <!-- Slide 6: ISS – International Space Station -->
     <div class="slide" id="slide6">
-        <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/fc1c4a20-2e85-41dc-9a1a-a34ed6c67329.png" alt="Futuristic Mars colony with rotating habitats under glass domes" class="slide-bg">
-        <h1 class="title">Future Scope</h1>
-        <h2 class="subtitle">Next Frontiers</h2>
-        <div class="content">
-            <p>The future of artificial gravitation is highly promising:</p>
-            <ul class="list-disc pl-5">
-                <li>Standard for long-duration missions</li>
-                <li>Moon and Mars colonization</li>
-                <li>Orbital research laboratories</li>
-                <li>Deep space travel</li>
-                <li>Space manufacturing</li>
-            </ul>
-            <p>With ongoing advancements in aerospace engineering, artificial gravity will become essential as we prepare to establish permanent human presence beyond Earth.</p>
-            <img src="https://www.slashgear.com/img/gallery/mars-city-designs-that-will-have-you-yearning-for-the-red-planet/l-intro-1658866367.jpg" alt="Artist's concept of Mars colony with rotating habitats" class="diagram">
+        <div class="progress-bar"><div class="progress"></div></div>
+        <h1 class="slide-title">ISS – International Space Station</h1>
+        <div class="slide-content">
+            <p>The current ISS doesn't implement artificial gravity due to its small size and research focus on microgravity.</p>
+            <p>Future stations like NASA's proposed Nautilus-X would incorporate rotating sections for partial gravity.</p>
+        </div>
+        <div class="diagram">
+            <svg class="grav-diagram" width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+                <!-- Space Station Frame -->
+                <circle cx="200" cy="200" r="120" fill="none" stroke="#38bdf8" stroke-width="3"/>
+                <circle cx="200" cy="200" r="80" fill="none" stroke="#818cf8" stroke-width="2" stroke-dasharray="5,5"/>
+                
+                <!-- Rotating Habitat Ring -->
+                <circle cx="200" cy="200" r="150" fill="none" stroke="#4ade80" stroke-width="5">
+                    <animateTransform attributeName="transform" type="rotate" from="0 200 200" to="360 200 200" dur="15s" repeatCount="indefinite"/>
+                </circle>
+                
+                <!-- Radial Structures -->
+                <line x1="200" y1="200" x2="200" y2="50" stroke="#fff" stroke-width="2" stroke-dasharray="5,5"/>
+                <line x1="200" y1="200" x2="200" y2="350" stroke="#fff" stroke-width="2" stroke-dasharray="5,5"/>
+                <line x1="200" y1="200" x2="50" y2="200" stroke="#fff" stroke-width="2" stroke-dasharray="5,5"/>
+                <line x1="200" y1="200" x2="350" y2="200" stroke="#fff" stroke-width="2" stroke-dasharray="5,5"/>
+                
+                <!-- Labels -->
+                <text x="90" y="250" fill="#fff">NASA Nautilus-X</text>
+                <text x="250" y="390" fill="#4ade80">Rotating Habitat (1g)</text>
+            </svg>
         </div>
     </div>
     
+    <!-- Slide 7: Applications -->
     <div class="slide" id="slide7">
-        <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/e8ae129d-f60f-4ebd-8bd1-6f9bd77145bf.png" alt="Inspiring view of humanity's future in space with multiple habitats" class="slide-bg">
-        <h1 class="title">Conclusion</h1>
-        <h2 class="subtitle">Key Takeaways</h2>
-        <div class="content">
-            <p>Artificial gravitation is no longer just science fiction:</p>
-            <ul class="list-disc pl-5">
-                <li>Necessary for long-term space habitation</li>
-                <li>Multiple practical methods exist</li>
-                <li>Addresses critical health concerns</li>
-                <li>Key to future space exploration</li>
-            </ul>
-            <p>As we prepare to send humans farther into space, creating Earth-like conditions will be essential for survival, comfort, and productivity. Continued research will shape the future of interplanetary travel.</p>
-            <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/0cc76d4b-e7a1-4a89-9f0a-962daa74c611.png" alt="Historical and projected timeline of artificial gravity technology" class="diagram">
+        <div class="progress-bar"><div class="progress"></div></div>
+        <h1 class="slide-title">Applications</h1>
+        <div class="slide-content">
+            <p>Essential for maintaining astronaut health on long missions (Mars, deep space).</p>
+            <p>Enables more Earth-like environments for space manufacturing, agriculture, and colonization.</p>
+        </div>
+        <div class="diagram floating">
+            <svg class="grav-diagram" width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="200" cy="200" r="150" fill="#1e293b" stroke="#818cf8" stroke-width="2"/>
+                <g class="floating">
+                    <circle cx="150" cy="150" r="40" fill="none" stroke="#38bdf8" stroke-width="2">
+                        <animateTransform attributeName="transform" type="rotate" from="0 150 150" to="360 150 150" dur="20s" repeatCount="indefinite"/>
+                    </circle>
+                    <circle cx="250" cy="250" r="40" fill="none" stroke="#38bdf8" stroke-width="2">
+                        <animateTransform attributeName="transform" type="rotate" from="360 250 250" to="0 250 250" dur="20s" repeatCount="indefinite"/>
+                    </circle>
+                </g>
+                <text x="200" y="100" fill="#38bdf8" font-size="18" text-anchor="middle">Mars Colony</text>
+                <text x="200" y="130" fill="#818cf8" font-size="14" text-anchor="middle">With Rotating Habitats</text>
+            </svg>
         </div>
     </div>
     
+    <!-- Slide 8: Future Scope -->
     <div class="slide" id="slide8">
-        <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/7c1e4c79-b8b0-4650-9d83-78cdba7eba50.png" alt="Night view of space station orbiting Earth with city lights visible below" class="slide-bg">
-        <h1 class="title">Thank You</h1>
-        <div class="presenter-info content">
-            <p class="text-xl font-bold">Presented by:</p>
-            <p class="text-lg">Samarth Shukla</p>
-            <p class="text-lg">Class 12th</p>
-            <p class="text-lg">SVM Rambagh, Basti</p>
-            <p class="mt-4">Special thanks to my physics teacher for guidance</p>
+        <div class="progress-bar"><div class="progress"></div></div>
+        <h1 class="slide-title">Future Scope</h1>
+        <div class="slide-content">
+            <p>Research into alternative methods like electromagnetic fields or manipulation of spacetime.</p>
+            <p>Possible integration with propulsion systems for continuous acceleration gravity.</p>
+        </div>
+        <div class="diagram">
+            <svg class="grav-diagram" width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+                <!-- Future spacecraft concept -->
+                <rect x="50" y="50" width="300" height="300" rx="20" ry="20" fill="none" stroke="#38bdf8" stroke-width="3"/>
+                <circle cx="200" cy="200" r="120" fill="none" stroke="#818cf8" stroke-width="2" stroke-dasharray="5,5">
+                    <animateTransform attributeName="transform" type="rotate" from="0 200 200" to="360 200 200" dur="20s" repeatCount="indefinite"/>
+                </circle>
+                <text x="200" y="100" fill="#38bdf8" font-size="18" text-anchor="middle">Future Spacecraft</text>
+                <text x="200" y="130" fill="#818cf8" font-size="14" text-anchor="middle">With Gravity & Propulsion</text>
+            </svg>
         </div>
     </div>
-
-    <div class="progress">
-        Slide <span id="current-slide">1</span> of 8
+    
+    <!-- Slide 9: Conclusion -->
+    <div class="slide" id="slide9">
+        <div class="progress-bar"><div class="progress"></div></div>
+        <h1 class="slide-title">Conclusion</h1>
+        <div class="slide-content">
+            <p>Artificial gravity technology is advancing rapidly with our expanding space ambitions.</p>
+            <p>Implementation will be crucial for humanity's future as a spacefaring civilization.</p>
+        </div>
+        <div class="diagram pulse">
+            <svg class="grav-diagram" width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+                <rect x="100" y="50" width="200" height="300" rx="20" ry="20" fill="none" stroke="#38bdf8" stroke-width="3"/>
+                <path d="M100 100 C150 60 250 60 300 100 L300 300 C250 340 150 340 100 300 Z" fill="none" stroke="#818cf8" stroke-width="2" stroke-dasharray="5,5">
+                    <animateTransform attributeName="transform" type="rotate" from="0 200 200" to="360 200 200" dur="25s" repeatCount="indefinite"/>
+                </path>
+                <text x="200" y="110" fill="#38bdf8" font-size="20" text-anchor="middle">Future Space</text>
+                <text x="200" y="140" fill="#818cf8" font-size="16" text-anchor="middle">Self-Sustaining Habitats</text>
+            </svg>
+        </div>
     </div>
-
-    <div class="nav-buttons">
-        <button class="btn" id="prev-btn">Previous</button>
-        <button class="btn" id="next-btn">Next</button>
+    
+    <!-- Slide 10: Thank You -->
+    <div class="slide" id="slide10">
+        <div class="progress-bar"><div class="progress"></div></div>
+        <h1 class="slide-title">Thank You</h1>
+        <div class="slide-content">
+            <p>Questions and discussion are welcome.</p>
+            <p>Special thanks to NASA, SpaceX, and other space agencies pushing these boundaries.</p>
+        </div>
+        <div class="diagram">
+            <svg class="grav-diagram" width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+                <!-- Thank you graphic -->
+                <path d="M100 200 L300 200" stroke="#38bdf8" stroke-width="2" stroke-dasharray="5,5"/>
+                <text x="200" y="150" fill="#38bdf8" font-size="24" text-anchor="middle" font-weight="bold">Thank You</text>
+                <circle cx="150" cy="250" r="30" fill="none" stroke="#818cf8" stroke-width="2">
+                    <animateTransform attributeName="transform" type="rotate" from="0 150 250" to="360 150 250" dur="10s" repeatCount="indefinite"/>
+                </circle>
+                <circle cx="250" cy="250" r="30" fill="none" stroke="#38bdf8" stroke-width="2">
+                    <animateTransform attributeName="transform" type="rotate" from="360 250 250" to="0 250 250" dur="10s" repeatCount="indefinite"/>
+                </circle>
+                <text x="200" y="350" fill="#818cf8" font-size="16" text-anchor="middle">For Your Time & Attention</text>
+            </svg>
+        </div>
+        <div class="presenter-info">
+            <p><strong>Presented by:</strong> Samarth Shukla</p>
+            <p><strong>Class:</strong> 12th</p>
+            <p><strong>School:</strong> SVM Rambagh</p>
+        </div>
     </div>
-
+    
+    <div class="control-buttons">
+        <button class="control-btn" onclick="prevSlide()">Previous</button>
+        <button class="control-btn" onclick="nextSlide()">Next</button>
+    </div>
+    
     <script>
         let currentSlide = 1;
-        const totalSlides = 8;
+        const totalSlides = 10;
+        let slideInterval;
         
-        function showSlide(n) {
+        function updateSlides() {
             document.querySelectorAll('.slide').forEach(slide => {
-                slide.classList.remove('active');
+                slide.classList.remove('active', 'prev', 'next');
             });
-            document.getElementById(`slide${n}`).classList.add('active');
-            document.getElementById('current-slide').textContent = n;
+            
+            document.getElementById(`slide${currentSlide}`).classList.add('active');
+            
+            if (currentSlide < totalSlides) {
+                document.getElementById(`slide${currentSlide + 1}`).classList.add('next');
+            }
+            
+            if (currentSlide > 1) {
+                document.getElementById(`slide${currentSlide - 1}`).classList.add('prev');
+            }
+            
+            // Reset progress bars
+            document.querySelectorAll('.progress').forEach(bar => {
+                bar.style.animation = 'none';
+                void bar.offsetWidth; // Trigger reflow
+                bar.style.animation = 'progressBar 30s linear forwards';
+            });
+            
+            // Reset timer
+            clearInterval(slideInterval);
+            slideInterval = setInterval(nextSlide, 30000);
         }
         
         function nextSlide() {
-            currentSlide = currentSlide < totalSlides ? currentSlide + 1 : 1;
-            showSlide(currentSlide);
+            if (currentSlide < totalSlides) {
+                currentSlide++;
+                updateSlides();
+            }
         }
         
         function prevSlide() {
-            currentSlide = currentSlide > 1 ? currentSlide - 1 : totalSlides;
-            showSlide(currentSlide);
+            if (currentSlide > 1) {
+                currentSlide--;
+                updateSlides();
+            }
         }
         
-        document.getElementById('next-btn').addEventListener('click', nextSlide);
-        document.getElementById('prev-btn').addEventListener('click', prevSlide);
-        
-        // Keyboard navigation
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowRight') nextSlide();
-            if (e.key === 'ArrowLeft') prevSlide();
+        // Start the presentation
+        document.addEventListener('DOMContentLoaded', () => {
+            updateSlides();
+            slideInterval = setInterval(nextSlide, 40000);
         });
         
-        // Print instructions for PDF export
+        // Add keyboard navigation
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'p' && (e.ctrlKey || e.metaKey)) {
-                setTimeout(() => {
-                    alert('For best PDF results, choose "Save as PDF" in the print dialog and ensure background graphics are enabled.');
-                }, 100);
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                nextSlide();
+            } else if (e.key === 'ArrowLeft') {
+                prevSlide();
             }
         });
     </script>
