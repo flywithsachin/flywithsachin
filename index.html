@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AquaSense - Arduino Sensor Dashboard</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Open+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-blue: #2c5282;
+            --secondary-blue: #3182ce;
+            --light-blue: #ebf8ff;
+            --aqua-green: #38b2ac;
+            --dark-green: #2d3748;
+            --success-green: #48bb78;
+            --warning-orange: #ed8936;
+            --danger-red: #f56565;
+            --light-gray: #f7fafc;
+            --border-color: #e2e8f0;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background: linear-gradient(135deg, var(--light-blue) 0%, #ffffff 100%);
+            color: var(--dark-green);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Header Styles */
+        .header {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--aqua-green) 100%);
+            color: white;
+            padding: 2rem 0;
+            border-radius: 0 0 20px 20px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logo-icon {
+            font-size: 2.5rem;
+            color: white;
+        }
+        
+        .logo-text {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            font-size: 2rem;
+        }
+        
+        .status-indicator {
+            background: rgba(255,255,255,0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            background: var(--success-green);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        /* Main Content */
+        .dashboard-title {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            font-size: 1.8rem;
+            margin-bottom: 2rem;
+            color: var(--primary-blue);
+            text-align: center;
+        }
+        
+        .sensors-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 3rem;
+        }
+        
+        .sensor-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid var(--border-color);
+        }
+        
+        .sensor-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        
+        .sensor-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .sensor-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--light-blue);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-blue);
+            font-size: 1.5rem;
+        }
+        
+        .sensor-title {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            font-size: 1.2rem;
+            color: var(--primary-blue);
+        }
+        
+        .sensor-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--secondary-blue);
+            margin: 10px 0;
+            text-align: center;
+        }
+        
+        .no-data-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--danger-red);
+            margin: 10px 0;
+            text-align: center;
+        }
+        
+        .sensor-unit {
+            font-size: 1rem;
+            color: var(--dark-green);
+            opacity: 0.7;
+        }
+        
+        .sensor-status {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-top: 10px;
+        }
+        
+        .status-normal {
+            background: rgba(72, 187, 120, 0.1);
+            color: var(--success-green);
+        }
+        
+        .status-warning {
+            background: rgba(237, 137, 54, 0.1);
+            color: var(--warning-orange);
+        }
+        
+        .status-danger {
+            background: rgba(245, 101, 101, 0.1);
+            color: var(--danger-red);
+        }
+        
+        .status-alert {
+            background: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+            border: 1px solid #f59e0b;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--light-gray);
+            border-radius: 4px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        
+        /* Visualization Section */
+        .visualization-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 2rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+        
+        .section-title {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            font-size: 1.5rem;
+            color: var(--primary-blue);
+            margin-bottom: 20px;
+        }
+        
+        .chart-container {
+            height: 300px;
+            background: var(--light-gray);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        
+        .chart-placeholder {
+            text-align: center;
+            color: var(--dark-green);
+            opacity: 0.6;
+        }
+        
+        .chart-placeholder i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: var(--secondary-blue);
+        }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 2rem 0;
+            color: var(--dark-green);
+            opacity: 0.7;
+            font-size: 0.9rem;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .logo {
+                justify-content: center;
+            }
+            
+            .sensors-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .sensor-value, .no-data-value {
+                font-size: 2rem;
+            }
+        }
+        
+        /* Animation for value changes */
+        @keyframes valueChange {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .value-changing {
+            animation: valueChange 0.5s ease;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-tint logo-icon"></i>
+                    <h1 class="logo-text">AquaSense</h1>
+                </div>
+                <div class="status-indicator">
+                    <div class="status-dot"></div>
+                    <span>Live Data Streaming</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <h2 class="dashboard-title">Aquatic Environment Monitoring Dashboard</h2>
+        
+        <div class="sensors-grid">
+            <!-- MQ Sensor Card -->
+            <div class="sensor-card">
+                <div class="sensor-header">
+                    <div class="sensor-icon">
+                        <i class="fas fa-wind"></i>
+                    </div>
+                    <h3 class="sensor-title">Air Quality (MQ)</h3>
+                </div>
+                <div class="sensor-value" id="mq-value">0</div>
+                <div class="sensor-unit">PPM</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="mq-progress" style="width: 0%; background: var(--success-green);"></div>
+                </div>
+                <div class="sensor-status status-normal">Normal</div>
+            </div>
+
+            <!-- Temperature Sensor Card -->
+            <div class="sensor-card">
+                <div class="sensor-header">
+                    <div class="sensor-icon">
+                        <i class="fas fa-thermometer-half"></i>
+                    </div>
+                    <h3 class="sensor-title">Water Temperature</h3>
+                </div>
+                <div class="sensor-value" id="temp-value">32.0</div>
+                <div class="sensor-unit">°C</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="temp-progress" style="width: 64%; background: var(--warning-orange);"></div>
+                </div>
+                <div class="sensor-status" id="temp-status">Warning</div>
+            </div>
+
+            <!-- Soil Moisture Sensor Card -->
+            <div class="sensor-card">
+                <div class="sensor-header">
+                    <div class="sensor-icon">
+                        <i class="fas fa-seedling"></i>
+                    </div>
+                    <h3 class="sensor-title">Soil Moisture</h3>
+                </div>
+                <div class="no-data-value" id="moisture-value">NO</div>
+                <div class="sensor-unit">%</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="moisture-progress" style="width: 0%; background: var(--danger-red);"></div>
+                </div>
+                <div class="sensor-status status-alert">ALERT - NO DATA</div>
+            </div>
+
+            <!-- Rain Detector Card -->
+            <div class="sensor-card">
+                <div class="sensor-header">
+                    <div class="sensor-icon">
+                        <i class="fas fa-cloud-rain"></i>
+                    </div>
+                    <h3 class="sensor-title">Rain Detection</h3>
+                </div>
+                <div class="no-data-value" id="rain-value">NO</div>
+                <div class="sensor-unit">Status</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="rain-progress" style="width: 0%; background: var(--danger-red);"></div>
+                </div>
+                <div class="sensor-status status-warning">WARNING - NO DATA</div>
+            </div>
+
+            <!-- Fish Detection Card -->
+            <div class="sensor-card">
+                <div class="sensor-header">
+                    <div class="sensor-icon">
+                        <i class="fas fa-fish"></i>
+                    </div>
+                    <h3 class="sensor-title">Fish Detection</h3>
+                </div>
+                <div class="no-data-value" id="fish-value">NO</div>
+                <div class="sensor-unit">Count</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="fish-progress" style="width: 0%; background: var(--danger-red);"></div>
+                </div>
+                <div class="sensor-status status-warning">NO DATA</div>
+            </div>
+        </div>
+
+        <!-- Data Visualization Section -->
+        <div class="visualization-section">
+            <h3 class="section-title">Environmental Data Trends</h3>
+            <div class="chart-container">
+                <div class="chart-placeholder">
+                    <i class="fas fa-chart-line"></i>
+                    <p>Live data visualization will appear here</p>
+                    <p><small>Connect to Arduino for real-time graphing</small></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Overview -->
+        <div class="visualization-section">
+            <h3 class="section-title">System Overview</h3>
+            <div class="chart-container">
+                <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/c6109b08-c28b-4f2f-bc3a-336a00d276db.png" alt="Schematic diagram showing Arduino board connected to various environmental sensors including MQ gas sensor, temperature probe, soil moisture detector, rain sensor, and underwater camera for fish detection with blue water-themed background" onerror="this.style.display='none'" />
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>AquaSense Monitoring System • Real-time Environmental Data • Powered by Arduino</p>
+            <p>© 2024 Aquatic Environment Monitoring Dashboard</p>
+        </div>
+    </footer>
+
+    <script>
+        // Temperature sensor ranges
+        const tempRanges = {
+            min: 0,
+            max: 50,
+            normal: 25,
+            warning: 35
+        };
+
+        // Current temperature value
+        let currentTemperature = 32.0;
+
+        // Function to update temperature display
+        function updateTemperatureDisplay(value) {
+            const valueElement = document.getElementById('temp-value');
+            const progressElement = document.getElementById('temp-progress');
+            const statusElement = document.getElementById('temp-status');
+            
+            // Add animation class for value change
+            valueElement.classList.add('value-changing');
+            setTimeout(() => valueElement.classList.remove('value-changing'), 500);
+            
+            // Update value display
+            valueElement.textContent = value.toFixed(1);
+            
+            // Update progress bar
+            const percentage = ((value - tempRanges.min) / (tempRanges.max - tempRanges.min)) * 100;
+            progressElement.style.width = `${Math.max(0, Math.min(100, percentage))}%`;
+            
+            // Update status and color
+            let status, statusClass, color;
+            
+            if (value <= tempRanges.normal) {
+                status = 'Normal';
+                statusClass = 'status-normal';
+                color = 'var(--success-green)';
+            } else if (value <= tempRanges.warning) {
+                status = 'Warning';
+                statusClass = 'status-warning';
+                color = 'var(--warning-orange)';
+            } else {
+                status = 'Danger';
+                statusClass = 'status-danger';
+                color = 'var(--danger-red)';
+            }
+            
+            progressElement.style.background = color;
+            statusElement.textContent = status;
+            statusElement.className = `sensor-status ${statusClass}`;
+        }
+
+        // Function to generate random temperature changes
+        function generateTemperatureChange() {
+            // Generate a small random change (-1 to +1 degrees)
+            const change = (Math.random() * 2 - 1);
+            currentTemperature += change;
+            
+            // Keep temperature within reasonable bounds (15-40°C)
+            currentTemperature = Math.max(15, Math.min(40, currentTemperature));
+            
+            // Update the display
+            updateTemperatureDisplay(currentTemperature);
+        }
+
+        // Initialize dashboard with fixed values
+        function initializeDashboard() {
+            // Set MQ Sensor to 0
+            document.getElementById('mq-value').textContent = '0';
+            document.getElementById('mq-progress').style.width = '0%';
+            
+            // Set initial temperature
+            updateTemperatureDisplay(currentTemperature);
+            
+            // Set Soil Moisture to NO with alert
+            document.getElementById('moisture-value').textContent = 'NO';
+            document.getElementById('moisture-progress').style.width = '0%';
+            
+            // Set Rain Detection to NO with warning
+            document.getElementById('rain-value').textContent = 'NO';
+            document.getElementById('rain-progress').style.width = '0%';
+            
+            // Set Fish Detection to NO
+            document.getElementById('fish-value').textContent = 'NO';
+            document.getElementById('fish-progress').style.width = '0%';
+        }
+
+        // Initialize the dashboard
+        window.addEventListener('load', initializeDashboard);
+
+        // Update temperature every 2 seconds to simulate real changes
+        setInterval(generateTemperatureChange, 2000);
+
+        // Simulate connection to Arduino
+        function connectToArduino() {
+            console.log("Simulating connection to Arduino...");
+            console.log("Replace this with actual serial communication code");
+        }
+
+        // Initialize connection
+        window.addEventListener('load', connectToArduino);
+    </script>
+</body>
+</html>
+
